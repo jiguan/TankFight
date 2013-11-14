@@ -13,7 +13,7 @@ public class Record {
 	public static void saveRecord()
 	{
 		try {
-			fw = new FileWriter("/home/jiguan/workspace/TankGame/src/saving.txt");
+			fw = new FileWriter("src/saving.txt");
 			bw = new BufferedWriter(fw);
 			bw.write(TankGame.getScore()+"\r\n");
 			
@@ -55,7 +55,7 @@ public class Record {
 	public static void saveScore()
 	{
 		try {
-			fw = new FileWriter("/home/jiguan/workspace/TankGame/src/highest_score.txt");
+			fw = new FileWriter("src/highest_score.txt");
 			bw = new BufferedWriter(fw);
 			bw.write(TankGame.getScore()+"\r\n");
 	
@@ -79,7 +79,7 @@ public class Record {
 		Vector<Node> nodes0 = new Vector<Node>();
 		Vector<Node> nodes1 = new Vector<Node>();
 		try {
-			fr = new FileReader("/home/jiguan/workspace/TankGame/src/saving.txt");
+			fr = new FileReader("src/saving.txt");
 			br = new BufferedReader(fr);
 			String n = br.readLine();
 			score = Integer.parseInt(n);
@@ -120,7 +120,7 @@ public class Record {
 	public static int readScore()
 	{
 		try {
-			fr = new FileReader("/home/jiguan/workspace/TankGame/src/highest_score.txt");
+			fr = new FileReader("src/highest_score.txt");
 			br = new BufferedReader(fr);
 			String n = br.readLine();
 			score = Integer.parseInt(n);

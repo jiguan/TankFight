@@ -1,9 +1,23 @@
-import javax.imageio.ImageIO;
-import javax.swing.*;
-import java.awt.*;
-import java.awt.event.*;
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Font;
+import java.awt.Graphics;
+import java.awt.Image;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
 import java.io.File;
 import java.util.Vector;
+
+import javax.imageio.ImageIO;
+import javax.swing.JButton;
+import javax.swing.JFrame;
+import javax.swing.JMenu;
+import javax.swing.JMenuBar;
+import javax.swing.JMenuItem;
+import javax.swing.JPanel;
+import javax.swing.JTextArea;
 
 public class TankGame extends JFrame implements ActionListener 
 {	
@@ -18,6 +32,7 @@ public class TankGame extends JFrame implements ActionListener
 	JMenu menu1, menu2;
 	JMenuItem menu_item11, menu_item12, menu_item13, menu_item14, menu_item21 , menu_item22;
 	JButton jb1;
+	Thread t;
 	public static void main (String [] args)
 	{
 		TankGame game = new TankGame();
@@ -69,8 +84,8 @@ public class TankGame extends JFrame implements ActionListener
 		hero_y = height-100;
 		
 		start_panel = new StartPanel();
-		Thread t = new Thread(start_panel);
-		t.start();
+		this.t = new Thread(start_panel);
+		this.t.start();
 		this.setJMenuBar(menu_bar);
 		this.add(start_panel);
 		this.setSize(width+100,height);
@@ -83,27 +98,53 @@ public class TankGame extends JFrame implements ActionListener
 		// TODO Auto-generated method stub
 		if(e.getActionCommand().equals("Start"))
 		{
-			my_panel = new Panel();
-			Thread t = new Thread(my_panel);
-			t.start();
-			//delete old panel
-			this.remove(start_panel);
-			this.add(my_panel);
-			this.setSize(width+100, height);
-			//this.add(status_panel, BorderLayout.SOUTH);
-			this.addKeyListener(my_panel);
-			this.setVisible(true);
+			t.interrupt();			
+			try {
+				if (t.getName().equals("Thread-1")) {
+					my_panel = new Panel();
+					this.t = new Thread(my_panel);
+					this.t.start();
+					//delete old panel
+					this.remove(start_panel);
+					this.add(my_panel);
+					this.setSize(width+100, height+100);
+					//this.add(status_panel, BorderLayout.SOUTH);
+					this.addKeyListener(my_panel);
+					this.setVisible(true);
+				} else {
+					this.remove(my_panel);
+					my_panel = new Panel();
+					this.t = new Thread(my_panel);
+					this.t.start();
+					//delete old panel
+					this.remove(start_panel);
+					this.add(my_panel);
+					this.setSize(width+100, height+100);
+					//this.add(status_panel, BorderLayout.SOUTH);
+					this.addKeyListener(my_panel);
+					this.setVisible(true);
+				}
+			
+			} catch (Exception e3) {
+				e3.printStackTrace();
+			}
+			
+			
+			
+			
 		}
 		else if(e.getActionCommand().equals("Load"))
 		{	
+
 			Panel.new_game = false;
 			Vector result[] = Record.readRecord();
 			System.out.println("result[0]:"+result[0].size());
 			my_panel = new Panel(result[0],result[1]);
 			//my_panel.nodes = ;
 			TankGame.score = Record.getScore();
-			Thread t = new Thread(my_panel);
-			t.start();
+			//Thread t = new Thread(my_panel);
+			this.t = new Thread(my_panel);
+			this.t.start();
 			//delete old panel
 			this.remove(start_panel);
 			this.add(my_panel);
@@ -187,6 +228,8 @@ class StartPanel extends JPanel implements Runnable
 		{
 			try {
 				Thread.sleep(1000);
+			} catch (InterruptedException e1) {
+				System.out.println("Interrupte startpanel");
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
@@ -201,19 +244,28 @@ class StartPanel extends JPanel implements Runnable
 class Panel extends JPanel implements KeyListener, Runnable
 {
 	//define my tank
-	Hero hero = null;
-	static Vector<Enemy> ets = new Vector<Enemy>();
-	static Vector<Enemy> ats = new Vector<Enemy>();
-	Vector<Explosion> bombs = new Vector<Explosion>();
-	static Vector<Node> nodes = new Vector<Node>();
+	Hero hero;
+	static Vector<Enemy> ets;
+	static Vector<Enemy> ats;
+	Vector<Explosion> bombs;
+	static Vector<Node> nodes;
 	int enemy_num;
 	int ally_num;
 	Image image1, image2, image3;
+	boolean init = false;
 	static boolean new_game = true;
+	Thread tank_thread;
 	
 	public Panel()
-	{
-		hero = new Hero (TankGame.hero_x,TankGame.hero_y);
+	{	
+		int hero_x = TankGame.width/3;
+		int hero_y = TankGame.height-100;
+		ets = new Vector<Enemy>();
+		ats = new Vector<Enemy>();
+		bombs = new Vector<Explosion>();
+		nodes = new Vector<Node>();
+		hero = new Hero (hero_x,hero_y);
+		
 		enemy_num = 7;
 		ally_num = 7;
 		for(int i=0;i<enemy_num;i++)
@@ -224,7 +276,7 @@ class Panel extends JPanel implements KeyListener, Runnable
 			//give other enemy's vector to this new tank
 			enemy_tank.setEts(ets);
 			//start enemy tank
-			Thread tank_thread = new Thread(enemy_tank);
+			tank_thread = new Thread(enemy_tank);
 			tank_thread.start();
 		}
 		//Initial ally
@@ -236,14 +288,14 @@ class Panel extends JPanel implements KeyListener, Runnable
 				//avoid overlap
 				ally_tank.setEts(ats);
 				//start allies tank
-				Thread tank_thread = new Thread(ally_tank);
+				tank_thread = new Thread(ally_tank);
 				tank_thread.start();
 		}
 		//Initial image
 		try {
-			image1 = ImageIO.read(new File("/home/jiguan/workspace/TankGame/src/explosive1.png"));
-			image2 = ImageIO.read(new File("/home/jiguan/workspace/TankGame/src/explosive2.png"));
-			image3 = ImageIO.read(new File("/home/jiguan/workspace/TankGame/src/explosive3.png"));
+			image1 = ImageIO.read(new File("src/explosive2.png"));
+			image2 = ImageIO.read(new File("src/explosive2.png"));
+			image3 = ImageIO.read(new File("src/explosive3.png"));
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -256,6 +308,7 @@ class Panel extends JPanel implements KeyListener, Runnable
 	
 	public Panel(Vector<Node> enemy_nodes, Vector<Node> ally_nodes) {
 		hero = new Hero (TankGame.hero_x,TankGame.hero_y);
+		Thread tank_thread;
 		if(enemy_nodes != null) {
 			for(int i=0;i<enemy_nodes.size();i++)
 			{
@@ -266,7 +319,7 @@ class Panel extends JPanel implements KeyListener, Runnable
 				//give other enemy's vector to this new tank
 				enemy_tank.setEts(ets);
 				//start enemy tank
-				Thread tank_thread = new Thread(enemy_tank);
+				tank_thread = new Thread(enemy_tank);
 				tank_thread.start();
 			}
 		}
@@ -282,15 +335,15 @@ class Panel extends JPanel implements KeyListener, Runnable
 				//avoid overlap
 				ally_tank.setEts(ats);
 				//start allies tank
-				Thread tank_thread = new Thread(ally_tank);
+				tank_thread = new Thread(ally_tank);
 				tank_thread.start();
 			}
 		}
 		//Initial image
 		try {
-			image1 = ImageIO.read(new File("/home/jiguan/workspace/TankGame/src/explosive1.png"));
-			image2 = ImageIO.read(new File("/home/jiguan/workspace/TankGame/src/explosive2.png"));
-			image3 = ImageIO.read(new File("/home/jiguan/workspace/TankGame/src/explosive3.png"));
+			image1 = ImageIO.read(new File("src/explosive1.png"));
+			image2 = ImageIO.read(new File("src/explosive2.png"));
+			image3 = ImageIO.read(new File("src/explosive3.png"));
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -354,8 +407,6 @@ class Panel extends JPanel implements KeyListener, Runnable
 		for(int i=0;i<bombs.size();i++)
 		{
 			Explosion bomb = bombs.get(i);
-			//System.out.println("sssssssssssssssssssssssssssss");
-			//System.out.println("The bomb's life "+bomb.life);
 			if(bomb.life>6) 
 			{
 				g.drawImage(image1, bomb.x, bomb.y, 30, 30, this);
@@ -510,7 +561,7 @@ class Panel extends JPanel implements KeyListener, Runnable
 		else if (e.getKeyCode()==KeyEvent.VK_A)
         {
 			this.hero.turnLeft();
-        }
+        } 
 		if (e.getKeyCode()==KeyEvent.VK_SPACE)
 		{
 			if (this.hero.bullets.size()<this.hero.max_bullet)
@@ -531,15 +582,19 @@ class Panel extends JPanel implements KeyListener, Runnable
 	@Override
 	public void run() {
 		// TODO Auto-generated method stub
-		String explosion_file = "/home/jiguan/workspace/TankGame/src/Bomb_Explosion.wav";
+		String explosion_file = "src/Bomb_Explosion.wav";
 		SoundPlay sound_play = new SoundPlay(explosion_file);
 		
 		while(true)
 		{
 			try{
 				Thread.sleep(100);
+			} catch (InterruptedException e) {
+				System.out.println("Interrupte Panel");
+				return;
 			} catch (Exception e) {
-			e.printStackTrace();
+				e.printStackTrace();
+			
 			}
 			//check whether enemy is hit by hero
 			for(int i=0;i<hero.bullets.size();i++)

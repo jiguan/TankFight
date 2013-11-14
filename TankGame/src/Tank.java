@@ -101,7 +101,7 @@ public class Tank
 
 class Hero extends Tank
 {
-	static int life = 2;
+	int life = 2;
 	public Hero(int x, int y)
 	{
 		super(x, y);
@@ -180,6 +180,7 @@ class Hero extends Tank
 		if (direct < 0)
 			direct = 4 + direct;
 	}
+	
 	
 }
 
@@ -344,5 +345,8 @@ class Enemy extends Tank implements Runnable
 				}
 			}
 		}
+	}
+	public void stop() {
+			Thread.currentThread().interrupt();
 	}
 }
